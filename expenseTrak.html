@@ -1,0 +1,81 @@
+<html>
+    <head></head>
+    <body>
+        <h1>Hey , Track All your Expenses Here !</h1>
+    <form id="expenseForm">
+        Amount Spent:  
+        <input type="text" id="amount" placeholder="Enter Amount">
+        Particular: 
+        <input type="text" id="particular" placeholder="Enter your thing">
+        Item Category: 
+        <select id = "category">
+            <option>Movie</option>
+            <option>Fuel</option>
+            <option>Food</option>
+            <option>Travel</option>
+            <option>Clothing</option>
+        </select>
+        <button type="button" onclick="addExpense()">Add</button>
+        <button type="button" onclick="editExpense()">Edit</button>
+
+    </form>
+    <div id="expenseList"></div>
+<script>
+     document.addEventListener("DOMContentLoaded", function() {
+            loadExpenses();
+        });
+    function addExpense(){
+        var amount= document.getElementById('amount').value;
+        var particular= document.getElementById('particular').value;
+        var category= document.getElementById('category').value;
+        var expenseItem= document.createElement('div');
+        expenseItem.className='expense-item';
+
+        expenseItem.innerHTML = '<strong>Amount:</strong> ' + amount +
+                                    '<br><strong>Particular:</strong> ' + particular +
+                                    '<br><strong>Category:</strong> ' + category;
+
+            document.getElementById('expenseList').appendChild(expenseItem);
+            document.getElementById('amount').value = '';
+            document.getElementById('particular').value = '';
+            document.getElementById('category').value = '';
+
+            var expenses = [];
+            var expenseItems = document.getElementById('expenseList').children;
+
+            for (var i = 0; i < expenseItems.length; i++) {
+                expenses.push(expenseItems[i].innerHTML);
+            }
+
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+    }
+    function editExpense(button) {
+            var expenseItem = button.parentNode;
+            var amount = expenseItem.querySelector('strong:nth-child(1)').textContent.split(': ')[1];
+            var particular = expenseItem.querySelector('strong:nth-child(2)').textContent.split(': ')[1];
+            var category = expenseItem.querySelector('strong:nth-child(3)').textContent.split(': ')[1];
+
+            document.getElementById('amount').value = amount;
+            document.getElementById('particular').value = particular;
+            document.getElementById('category').value = category;
+
+            document.getElementById('editIndex').value = Array.prototype.indexOf.call(expenseItem.parentNode.children, expenseItem);
+        }
+    function loadExpenses() {
+            var expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            var expenseList = document.getElementById('expenseList');
+            expenseList.innerHTML = '';
+
+            for (var i = 0; i < expenses.length; i++) {
+                var expenseItem = document.createElement('div');
+                expenseItem.className = 'expense-item';
+                expenseItem.innerHTML = expenses[i];
+                expenseList.appendChild(expenseItem);
+            }
+
+        }
+</script>
+    </body>
+</html>
