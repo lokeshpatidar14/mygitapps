@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-commerce Page</title>
+</head>
+<body>
+  <h1>E-commerce Page</h1>
+
+  <form id="itemForm" onsubmit="addItem(event)">
+    <label for="itemName">Item Name:</label>
+    <input type="text" id="itemName" required>
+
+    <label for="itemPrice">Item Price:</label>
+    <input type="number" id="itemPrice" required>
+
+    <label for="itemCategory">Item Category:</label>
+    <select id="itemCategory" required>
+      <option value="electronics">Electronics</option>
+      <option value="fashion">Fashion</option>
+      <option value="skincare">Skin Care</option>
+      <option value="giftitems">Gift Items</option>
+    </select>
+
+    <button type="submit">Add Item</button>
+  </form>
+
+  <div id="electronicsItems">
+    <h2>Electronics</h2>
+    <div class="item-container" id="electronicsContainer"></div>
+  </div>
+
+  <div id="fashionItems">
+    <h2>Fashion</h2>
+    <div class="item-container" id="fashionContainer"></div>
+  </div>
+
+  <div id="skincareItems">
+    <h2>Skin Care</h2>
+    <div class="item-container" id="skincareContainer"></div>
+  </div>
+
+  <div id="giftitemsItems">
+    <h2>Gift Items</h2>
+    <div class="item-container" id="giftitemsContainer"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchAndDisplayItems('electronics');
+      fetchAndDisplayItems('fashion');
+      fetchAndDisplayItems('skincare');
+      fetchAndDisplayItems('giftitems');
+    });
+
+    function fetchAndDisplayItems(category) {
+      axios.get(`https://crudcrud.com/api/eb1029182e7f44118d867adcb334ec7c/mycart?category=${category}`)
+        .then(response => {
+          const itemContainer = document.getElementById(`${category}Container`);
+          response.data.forEach(item => {
+            const newItem = document.createElement('div');
+            newItem.innerHTML = `Name: ${item.name}, Price: ${item.price} <button onclick="deleteItem('${item._id}')">Delete</button>`;
+            newItem.setAttribute('data-item-id', item._id);
+            itemContainer.appendChild(newItem);
+          });
+        })
+        .catch(error => {
+          console.error(`Error fetching items for ${category}:`, error);
+        });
+    }
+
+    function addItem(event) {
+      event.preventDefault();
+
+      const itemName = document.getElementById('itemName').value;
+      const itemPrice = document.getElementById('itemPrice').value;
+      const itemCategory = document.getElementById('itemCategory').value;
+
+      const newItem = {
+        name: itemName,
+        price: itemPrice,
+        category: itemCategory
+      };
+
+     
+      axios.post('https://crudcrud.com/api/eb1029182e7f44118d867adcb334ec7c/mycart', newItem)
+        .then(response => {
+          showNewItemOnScreen(response.data, itemCategory);
+        })
+        .catch(error => {
+          console.error('Error storing item:', error);
+        });
+
+      
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
+      document.getElementById('itemCategory').value = '';
+    }
+
+    function showNewItemOnScreen(item, category) {
+      const itemContainer = document.getElementById(`${category}Container`);
+      const newItem = document.createElement('div');
+      newItem.innerHTML = `Name: ${item.name}, Price: ${item.price} <button onclick="deleteItem('${item._id}')">Delete</button>`;
+      newItem.setAttribute('data-item-id', item._id);
+      itemContainer.appendChild(newItem);
+    }
+
+    function deleteItem(itemId) {
+      
+      axios.delete(`https://crudcrud.com/api/eb1029182e7f44118d867adcb334ec7c/mycart/${itemId}`)
+        .then(() => {
+          
+          const itemContainers = document.querySelectorAll('.item-container');
+          itemContainers.forEach(container => {
+            const itemToDelete = container.querySelector(`[data-item-id="${itemId}"]`);
+            if (itemToDelete) {
+              itemToDelete.remove();
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error deleting item:', error);
+        });
+    }
+  </script>
+</body>
+</html>
