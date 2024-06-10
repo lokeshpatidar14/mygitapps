@@ -1,105 +1,67 @@
-import React from "react";
-import MoviesList from "./components/MoviesList";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes, NavLink } from "react-router-dom";
 import "./App.css";
-import { useState } from "react";
-import { useEffect } from "react";
-import { useCallback } from "react";
-import AddMovie from "./components/AddMovie";
+import { useCart, CartProvider } from "./Store/CartContext";
+import AboutUs from "./components/Pages/About";
+import Home from "./components/Pages/Home";
+import ContactUs from "./components/Pages/ContactUs";
+import ProductList from "./components/Products/ProductList";
+import Cart from "./components/Cart/Cart";
 
 function App() {
-  const [movies, setMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { state } = useCart();
 
-  const fetchMoviesHandler = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        "https://react-http-5e31a-default-rtdb.firebaseio.com/movies.json"
-      );
-
-      if (!response.ok) {
-        throw new Error("Something went wrong");
-      }
-      const data = await response.json();
-
-      const loadedMovies = [];
-
-      for (const key in data) {
-        loadedMovies.push({
-          id: key,
-          title: data[key].title,
-          openingText: data[key].openingText,
-          releaseDate: data[key].releaseDate,
-        });
-      }
-
-      setMovies(loadedMovies);
-      setIsLoading(false);
-    } catch (error) {
-      setError(error.message);
-    }
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchMoviesHandler();
-  }, [fetchMoviesHandler]);
-
-  async function addMovieHandler(movie) {
-    const response = await fetch(
-      "https://react-http-5e31a-default-rtdb.firebaseio.com/movies.json",
-      {
-        method: "POST",
-        body: JSON.stringify(movie),
-        header: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const data = await response.json();
-    console.log(data);
-    fetchMoviesHandler();
-  }
-
-  async function deleteMovieHandler(movieId) {
-    const response = await fetch(
-      `https://react-http-5e31a-default-rtdb.firebaseio.com/movies/${movieId}.json`,
-      {
-        method: "DELETE",
-      }
-    );
-    if (!response.ok) {
-      throw new Error("Could not delete movie.");
-    }
-    fetchMoviesHandler();
-  }
-
-  let content = <p>Found No Movies</p>;
-  if (movies.length > 0) {
-    content = <MoviesList movies={movies} onDeleteMovie={deleteMovieHandler} />;
-  }
-
-  if (error) {
-    content = <p>{error}</p>;
-  }
-
-  if (isLoading) {
-    content = <p>Loading....</p>;
-  }
+  const toggleCart = () => {
+    setIsCartOpen(!isCartOpen);
+  };
 
   return (
-    <React.Fragment>
-      <section>
-        <AddMovie onAddMovie={addMovieHandler} />
-      </section>
-      <section>
-        <button onClick={fetchMoviesHandler}>Fetch Movies</button>
-      </section>
-      <section>{content}</section>
-    </React.Fragment>
+    <Router>
+      <div className="App">
+        <nav>
+          <ul>
+            <li>
+              <NavLink exact to="/">
+                Home
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/about">About</NavLink>
+            </li>
+            <li>
+              <NavLink to="/contact">Contact Us</NavLink>
+            </li>
+            <li>
+              <NavLink to="/products">Products</NavLink>
+            </li>
+            <li>
+              <button onClick={toggleCart} className="cart-button">
+                Cart (
+                {state.items.reduce((total, item) => total + item.quantity, 0)})
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/products" element={<ProductList />} />
+        </Routes>
+
+        {isCartOpen && <Cart onClick={toggleCart} />}
+       
+      </div>
+    </Router>
   );
 }
 
-export default App;
+const AppWithProvider = () => (
+  <CartProvider>
+    <App />
+  </CartProvider>
+);
+
+export default AppWithProvider;
