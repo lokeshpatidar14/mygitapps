@@ -1,6 +1,6 @@
 import React from 'react';
 import './Product.css';
-import { useCart } from '../../Store/CartContext';
+import { useCart } from '../../MyContext/CartContext';
 
 const Product = ({ title, price, imageUrl }) => {
   const { dispatch } = useCart();

@@ -1,6 +1,6 @@
 import React from 'react';
 import './Cart.css';
-import { useCart } from '../../Store/CartContext';
+import { useCart } from '../../MyContext/CartContext';
 
 const Cart = (props) => {
   const { state, dispatch } = useCart();
